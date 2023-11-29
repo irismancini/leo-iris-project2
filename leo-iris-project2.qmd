@@ -143,6 +143,21 @@ parc_social_age_moyen_du_parc_en_annees : Social housing stock - Average age (in
 
 parc_social_taux_de_logements_energivores_e_f_g_en : Social housing stock - Rate of energy-inefficient dwellings (E,F,G) (in %)
 
+## II. Data cleaning :
+
+### 1. Eliminating useless variables
+
+```{r, message=FALSE}
+
+# We eliminate variables that won't be relevant to the analysis: 
+log_soc <-  log_soc |>
+  select(-geom, -geo_point_2d, -parc_social_taux_de_logements_energivores_e_f_g_en)
+
+# We drop the year variable since all our observations are from 2023: 
+bassin_emploi <- bassin_emploi |>
+  select(-annee)
+```
+
 ### 2. Keeping the IDs :
 
 Then we realize that a great part of our variables are ID code, and the names corresponding to each of the ID code. We will then create tables in which we gather each ID, and the name to which it is associated. (For example for the department, we create a table, which each row corresponds to a department ID in the first column, and the name of the department in the second). That will allow us to only keep the IDs, in the dataset, without losing the possibility to know what each ID is referring to.
@@ -210,4 +225,63 @@ Finally, we only keep observations concerning the 2020 year (observed in 2022) :
 ```{r}
 log_soc <- log_soc |>
   filter(annee_publication=="2022")
+```
+
+## III. Informations about the data files :
+
+Now that we have cleaned our data files, and can make basic operations on them, we will provide one table per data file that gives basic information on our data files :
+
+### 1. Labor pools table :
+
+```{r, echo = FALSE}
+info_be <- bassin_emploi |>
+  summarise("Title" = "Summary table for labor pools data",
+    "number of rows"=n(),
+            "number of columns"=ncol(bassin_emploi),
+            "number of labor pools"= length(unique(bassin_emploi$BE20)),
+            "Number of recruitment projects in 2020"= sum(as.numeric(unlist(bassin_emploi$met)), na.rm = TRUE), 
+            "Number of difficult recruitment projects in 2020"= sum(as.numeric(unlist(bassin_emploi$xmet)), na.rm = TRUE), 
+    "Average number of recruitment projects by labor pool" = (sum(as.numeric(unlist(bassin_emploi$met)), na.rm = TRUE))/length(unique(bassin_emploi$BE20)),
+    "Average number of difficult recruitment projects by labor pool" = (sum(as.numeric(unlist(bassin_emploi$xmet)), na.rm = TRUE))/length(unique(bassin_emploi$BE20)))
+
+info_be |>
+  knitr::kable()
+
+```
+
+This first table gives us basic informations, not very detailed, but we can see that for example in 2023, each labor pool exhibits on average 7440 recruitment projects, and among them there are in average 4519 projects that have been considered difficult. This can give us a first global impression on the structure of the French labor market, in average more than half of the recruitment projects initiated by the recruiters have been considered by them to "achieve".
+
+### 2. Social housing table :
+
+```{r, echo = FALSE}
+
+info_soc_hous <- log_soc |>
+  summarise("Title" = "Social housing summary table", 
+            "number of rows"=n(),
+            "number of columns"=ncol(log_soc),
+            "Average unemployment rate across France in 2020" = mean(taux_de_chomage_au_t4_en, na.rm = TRUE), 
+            "Average number of housing facilities across France in 2020" = mean(nombre_de_logements, na.rm = TRUE), 
+            "Average number of social housings across France in 2020" = mean(parc_social_nombre_de_logements, na.rm = TRUE))
+
+info_soc_hous |>
+  knitr::kable()
+```
+
+In average one sixth of the total number of French housing facilities are social housing facilities in 2020. This is coherent with the average rate of social housing that is around 15% in 2020.
+
+## IV. Joining the datasets :
+
+As mentioned previously our common variable is the variable of the code department.
+
+However, the variable isn't named the same way in the two datasets. We have then to rename it in one of the datasets, before merging them. We will first do this, then merge the datasets and finally explain our merge.
+
+```{r, message = FALSE}
+
+log_soc <- log_soc |>
+  rename("Dept" = code_departement)
+```
+
+```{r, message = FALSE}
+
+merge_df <- merge(bassin_emploi, log_soc, by = "Dept")
 ```
