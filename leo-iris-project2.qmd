@@ -281,7 +281,16 @@ log_soc <- log_soc |>
   rename("Dept" = code_departement)
 ```
 
-```{r, message = FALSE}
+We do the merge, and we merge by our common variable that is the department :
 
+```{r, message = FALSE}
 merge_df <- merge(bassin_emploi, log_soc, by = "Dept")
+```
+
+We realize that there is some lines in which we don't have any value for met, xmet or smet. So we eliminate them.
+
+```{r, message = FALSE}
+na_count <- apply(merge_df[c("met", "xmet", "smet")], 1, function(x) sum(is.na(x)))
+
+merge_filtered <- merge_df[na_count < 3, ]
 ```
