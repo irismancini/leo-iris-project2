@@ -294,3 +294,19 @@ na_count <- apply(merge_df[c("met", "xmet", "smet")], 1, function(x) sum(is.na(x
 
 merge_filtered <- merge_df[na_count < 3, ]
 ```
+
+So what do we have ? Each line corresponds to a specific combinaison of department, a BE20 code, a famille_met and métier, for which we know the number of recruitment projects, the number of difficult recruitment projects and the number of seasonal recruitment projects. So that each number of recruitment projects is associated to a certain combinaison of a specific type of job, included in a specific job family, in each labor pool possible.
+
+## V. Research project :
+
+We have multiple questions that raises from these data sets, that we have merged by department. First of all, we will find out how many labor pool exists in each department, so that we will know which departments in France are looking for labor force, and which are labor desert. Then we would like to sort out the proportion of social housing per labor pool, and the unemployment rate per department. Then we will be able to see if there is a stronger correlation between unemployment rate and social housing or between unemployment rate and labor pool. Said in an other way, are people unemployed when they live in areas filled with social housing or do they are unemployed when they're far from labor pools, regardless of their housing ?
+
+Then, we also would like to compare the contributions of each departments to the migration rate (variation of population over 10 years)s. Do people are attracted by areas with a large labor pool ? Do they leave when the staffing is considered difficult (that is measured by one of the variables) ? Or are they coming in a department when social, cheap housing is constructed ?
+
+ 
+
+Also, it will be interesting to see which are the labor families that are the most living in social housing, and where they're located. Then we will proceed to determine which are the sectors that are the most looking for labor force, and which sectors have difficulties to be attractive.
+
+ 
+
+We will answer these research questions using a diverse set of plots, this is why we took the decision that we wouldn't plot a "target variable" since we don't target one and only variable but rather a set of different dynamics.
