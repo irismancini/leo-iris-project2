@@ -5,8 +5,140 @@ editor: visual
 author: "Leopold Gross and Iris Mancini"
 ---
 
-## 
+# First phase of the project
 
-```{}
+Here you can access the github repository we created for our project :
+
+https://github.com/irismancini/leo-iris-project.git
+
+```{r, echo = FALSE, message = FALSE}
+
+here::i_am("leo-iris-project2.Rproj")
+library(here)
+library(vroom)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
 ```
 
+## Data loading
+
+```{r, message = FALSE}
+log_soc <- vroom(here("data", "logements-sociaux copie.csv"))
+bassin_emploi <- vroom(here("data", "bassin_emploi copie.csv"))
+```
+
+## I. Data description :
+
+### 1. First dataset : Structure of the french employment supply according to the labor pools
+
+The data is extracted from the open data that can be found on the Pôle Emploi website : <https://www.pole-emploi.org/files/live/sites/peorg/files/documents/Statistiques-et-analyses/Open-data/BMO/Donnees_consolidees_2023.zip> 
+
+The data contained in the first database come from a survey carried out by Pôle Emploi as part of the Besoins en main d'œuvre 2020 (Manpower requirements 2020) survey. The overall aim of this survey is to provide jobseekers with relevant information. Indeed, Pôle Emploi provides public data on the geographical areas (by sector in particular) in which recruiters have the greatest difficulty finding candidates. These recruitment difficulties take a variety of forms, from a lack of demand to a mismatch between the skills possessed by job applicants and the skills required by recruiters. Thus, their aim is to help jobseekers find their way into sectors where there is the greatest supply.
+
+The data concern the 2020 year and give us information on the structure of labor supply in France, according to specific geographical areas. The conventional classification used by Insee to analyze the structure of the labor market is the delimitation of territories by employment zone. An employment zone corresponds to a cluster of nearby municipalities with close economic ties or linked by migratory flows, in which most part of the population work. Insee considers then 305 "zones d'emploi."
+
+Pole emploi is more interested in using the classification by labor pool ("basin d'emploi"), this classification is similar to the Insee one, but differs in some respects. Here you can find their definition: "The"bassin d'emploi", is a geographical area in which jobseekers and their agencies are distributed. At the end of 2020, there were 409 employment areas. Each employment area belongs to one, and only one, French region. However, an employment area can straddle several départements."
+
+The database contains observations on the number of recruitment projects, i.e. the number of job positions to be filled, depending on the labor pool and the activity sector. It also provides us information on the number of "difficult projects", i.e. the number of job positions for which recruiters struggle to find an adequate candidate. 
+
+Our database contains 14 variables : 
+
+année (year) : this variable represents the year the observation has been collected. All our observations are from 2023. 
+
+code métier BMO (profession ID) : this variable is a character string with two letters and three digits. Each code is associated with a type of profession.
+
+nom_metier BMO (profession name) : name of the type of profession (associated to the previous ID). 
+
+Famille_met : Profession family code/ID. The variable can take as value a letter (A to Z), each letter is associated to a certain category (family) of profession. For example, "O" stands for construction workers.
+
+Lbl_fam_met : Profession category/family name. Associated to the previous ID. 
+
+BE23 : Labor pool code/ID. (Labor pool definition : Geographical area within which most jobs held by residents of the same area are located). 
+
+NOMBE23 : Name of the labor pool. Associated with the previous ID. 
+
+Dept : department code (ID). This variable is the one we are going to use as the common variable between our two datasets. 
+
+NomDept : Name of the departments. Associated with the previous ID. 
+
+REG : Insee regional code. ID for each region, the variable takes as value a number associated to a region. 
+
+NOM_REG : name of each region. Associated with the previous ID. 
+
+met : number of recruitment projects. "The number of recruitment projects is the total number of new hires anticipated by employers over the year (all recruitment channels combined: job centres, unsolicited applications, etc.)." (Pôle Emploi website). 
+
+xmet : Number of recruitment projects considered difficult. Number of projects for which the recruiters struggle to find an employee due to either a lack of suitably qualified candidates, or to an imbalance between supply and demand on the job market. 
+
+smet :  Number of seasonal recruitment projects.
+
+### 2. Second dataset : demographic indicators of the social housing stock by french department :
+
+The dataset is downloadable at the following link : <https://www.data.gouv.fr/fr/datasets/logements-et-logements-sociaux-dans-les-departements-1/>
+
+The dataset comes from the Sitadel2 database, produced by INSEE, the social rental stock directory (RPLS) and CDC. It was published in 2023, and provides us with demographic indicators, on French departments, relevant to the analysis of the housing sector, particularly social housing facilities, for the years 2016 to 2020. (Each observation is published two years later, so that if "annee_publication" = 2022, we know that it concerns the year 2020)
+
+Thus for each department, we have a variety of different indicators such as the poverty rate, or the unemployment rate. What is interesting is that those indicators are provided in addition to the indicators describing the structure of the social housing market. We will then be interested in analyzing such demographic descriptions in the context of the social housing stock.
+
+The variable we have in common with the other dataset is thus the variable of departments. If each department appears once in this dataset, in the other it appears several times.
+
+This second database contains 30 variables (we will eliminate later variables from the initial database, we will eliminate variables that are useless for the analysis) : 
+
+annee_publication : year of publication of the observation. The year of each observation corresponds to N-2, the year of publication.
+
+code_departement :  department id. Each department has an id, and this classification is the same all around France (this is our common variable with the other dataset)
+
+nom_departement: name of the department. Associated with the previous ID
+
+code_region : regional id. 
+
+nom_region : name of the region. Associated with the previous ID
+
+nombre_d_habitants : number of inhabitants
+
+densite_de_population_au_km2 : population density per square kilometer. Average number of inhabitants in a square km. 
+
+variation_de_la_population_sur_10_ans_en: Population change over the last 10 years (in %), within the department. 
+
+dont_contribution_du_solde_naturel_en : Part of the population change over the last ten year that is due to the natural balance (in %)
+
+dont_contribution_du_solde_migratoire_en : Part of the population change over the last ten year that is due to the net migration (in %)
+
+population_de_moins_de_20_ans : percentage of the total population that is under 20 years old.
+
+population_de_60_ans_et_plus : percentage of the population that is above 60 years old.
+
+taux_de_chomage_au_t4_en : unemployment rate at the fourth trimester (in %). 
+
+taux_de_pauvrete_en : poverty rate (in %)
+
+nombre_de_logements : number of housing units
+
+nombre_de_residences_principales : number of principal residences
+
+taux_de_logements_sociaux_en : share of social housing (in %) 
+
+taux_de_logements_vacants_en : percentage of vacant dwellings 
+
+taux_de_logements_individuels_en : percentage of single-family homes 
+
+moyenne_annuelle_de_la_construction_neuve_sur_10_ans : Annual average for new construction over 10 years: 
+
+parc_social_nombre_de_logements : Social housing stock - Number of units
+
+parc_social_logements_mis_en_location : Social housing stock - Rented units 
+
+parc_social_logements_demolis : Social housing - Demolished dwellings:
+
+parc_social_ventes_a_des_personnes_physiques : Social housing - Sales to individuals: 
+
+parc_social_taux_de_logements_vacants_en : Social housing stock - Vacancy rate (%)
+
+parc_social_taux_de_logements_individuels_en : Social housing stock - Percentage of single-family dwellings (%): 
+
+parc_social_loyer_moyen_en_eur_m2_mois : Social housing stock - Average rent (in €/m²/month)
+
+parc_social_age_moyen_du_parc_en_annees : Social housing stock - Average age (in years): 
+
+parc_social_taux_de_logements_energivores_e_f_g_en : Social housing stock - Rate of energy-inefficient dwellings (E,F,G) (in %)
