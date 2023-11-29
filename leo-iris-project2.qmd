@@ -142,3 +142,72 @@ parc_social_loyer_moyen_en_eur_m2_mois : Social housing stock - Average rent (in
 parc_social_age_moyen_du_parc_en_annees : Social housing stock - Average age (in years): 
 
 parc_social_taux_de_logements_energivores_e_f_g_en : Social housing stock - Rate of energy-inefficient dwellings (E,F,G) (in %)
+
+### 2. Keeping the IDs :
+
+Then we realize that a great part of our variables are ID code, and the names corresponding to each of the ID code. We will then create tables in which we gather each ID, and the name to which it is associated. (For example for the department, we create a table, which each row corresponds to a department ID in the first column, and the name of the department in the second). That will allow us to only keep the IDs, in the dataset, without losing the possibility to know what each ID is referring to.
+
+#### a. Keeping the IDs : log_soc
+
+```{r, message = FALSE, echo = FALSE}
+
+dpt_id <- log_soc |>
+  distinct(code_departement, nom_departement) |>
+  arrange(code_departement) 
+
+dpt_id <- dpt_id[complete.cases(dpt_id), ] #we eliminate rows containing NA values
+
+region_id1 <- log_soc |>
+  distinct(code_region, nom_region) |>
+  arrange(code_region)
+
+region_id1 <- region_id1[complete.cases(region_id1), ] #we eliminate rows containing NA values
+
+log_soc <- log_soc |>
+  select(-nom_departement, -nom_region) 
+
+```
+
+#### b. Keeping the IDs : bassin_emploi
+
+```{r, message = FALSE, echo = FALSE}
+
+job_id <- bassin_emploi |>
+  distinct(metier, nommetier)
+
+job_fam_id <- bassin_emploi |>
+  distinct(Famille_met, Lbl_fam_met)
+
+laborpool_id <- bassin_emploi |>
+  distinct(BE20,NOMBE20)
+
+region_id2 <- bassin_emploi |>
+  distinct(REG, NOM_REG)
+
+bassin_emploi <- bassin_emploi |>
+  select(-nommetier, -Lbl_fam_met, -NOMBE20, -NomDept, -NOM_REG)
+
+```
+
+Our common variable is the department variable. Let's at least display the table containing the IDs associated with the name of the departments.
+
+```{r, message = FALSE, echo = FALSE}
+dpt_id |>
+  knitr::kable() 
+```
+
+### c. Dealing with NA values
+
+We notice that in our bassin_emploi database, NA values are marked as \*. We need to replace \*, so that our environment understands the \* as an indication of missing values.
+
+```{r, message = FALSE}
+
+bassin_emploi <- bassin_emploi |> mutate(across(c(met, xmet, smet), ~na_if(., "*")))
+```
+
+Finally, we only keep observations concerning the 2020 year (observed in 2022) :
+
+```{r}
+log_soc <- log_soc |>
+  filter(annee_publication=="2022")
+```
